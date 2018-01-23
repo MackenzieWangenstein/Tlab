@@ -1,0 +1,2 @@
+Trial 1: batch size = 10, used binary_crossover, hidden inner nodes = 4
+Trial 2: batchsize = 50, mean-square-error, hidden inner nodes = 5
