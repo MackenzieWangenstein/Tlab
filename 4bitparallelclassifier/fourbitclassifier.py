@@ -24,20 +24,15 @@ import numpy as np
 
 """
 class  FourBitClassifier(object):
-    def __init__(self):
-        # self.string_A =
-        # self.training_data =
-
     #step 1: randomly generate a number x where 16 <=x < 32 to ensure a binary string of length 4 is generated,
     def get_random(self):
         print("place holder")
 
 
-    #step 2: create training_set  -- according to Dr. Teuscher it is okay for the training data to have repeat values
-    #generate a thousand strings where bits are arbitrary chosen to flip
+    # #step 2: create training_set  -- according to Dr. Teuscher it is okay for the training data to have repeat values
+    # #generate a thousand strings where bits are arbitrary chosen to flip
     def createTrainingSet(self, ):
-
-
+        print("place holder")
 
 
 
