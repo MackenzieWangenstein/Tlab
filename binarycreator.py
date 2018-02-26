@@ -25,6 +25,21 @@ def create_and_classify_binary_set(filename, decimal_num):
     file.close()
 
 
+def create_and_classify_binary_with_binary(filename, training_binary):
+    file = open(filename, "w")
+
+    training_binary_len = len(training_binary)
+
+    # create binary representations of all the decimals numbers whose binary values have the same length as the training
+    # string -- except for training string
+    last_dec_in_range = pow(2, training_binary_len)
+    for i in range(pow(2, training_binary_len - 1) + 1, last_dec_in_range):
+        binary_string = convert_to_data_format(training_binary, training_binary_len, '{0:b}'.format(i))
+        if i != last_dec_in_range:
+            binary_string = binary_string + "\n"
+        file.write(binary_string)
+    file.close()
+
 def pad_string(training_binary_len, src_binary):
     padded_string = src_binary.rjust(training_binary_len, '0')
     print("padding string ", padded_string)

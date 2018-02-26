@@ -11,6 +11,8 @@ def main():
 		random_decimal = random.randrange(256, 516)
 		binarycreator.create_and_classify_binary_set("rgflclassifier/random-binary.txt", random_decimal)
 
+
+	#TODO: add sys arg
 	# train data model.
 	hdg.create_data(10, 100, "hammingdistanceclassifier/hammingdata.csv")
 
