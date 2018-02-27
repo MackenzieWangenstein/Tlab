@@ -44,7 +44,12 @@ def create_training_data(filename, control_str, desired_dataset_size):
 	training_data = []
 	# random_data = create_random_binary(len(control_str), desired_dataset_size/2)
 	# training_data.append(random_data)
-	mutation_data = create_random_mutations(control_str, int(desired_dataset_size/2))
+	# mutation_data = create_random_mutations(control_str, int(desired_dataset_size/2)) //TODO: put back in
+	mutated_data_size = int(desired_dataset_size/2)
+	print("mudated data size ", mutated_data_size)
+	random_data_size = desired_dataset_size - mutated_data_size
+	print("random data size", random_data_size)
+	mutation_data = create_random_mutations_balanced(control_str, mutated_data_size)
 	training_data.append(mutation_data)
 	for i in range(len(training_data)):
 		print("data example: ", training_data)
@@ -64,6 +69,7 @@ def create_random_mutations(control_str, desired_dataset_size):
 		#randomly choose how many positions to flip
 		num_of_pos_to_flip = np.random.randint(control_str_length, size=1)
 		# randomly choose which positions where the digit should be flipped
+		#TODO: is this right??? check control str length and index to generate to
 		pos_to_flip = np.random.choice((control_str_length - 1), num_of_pos_to_flip, replace=False)
 		for j in range(num_of_pos_to_flip[0]):
 			print("pos to flip: ", pos_to_flip[j])
@@ -75,6 +81,37 @@ def create_random_mutations(control_str, desired_dataset_size):
 		training_data[i] = mutated_str
 	return training_data
 
+#class = hamming distance  o(n^3) :(
+def create_random_mutations_balanced(control_str, desired_dataset_size):
+	control_str_length = len(control_str)
+	training_data = np.zeros((desired_dataset_size, control_str_length + 1))
+	#shape m xn where m = # of training and makes space for training label
+
+	# Ensurs data classes are balanced in training data example
+	count_per_class = int(desired_dataset_size/len(control_str))
+	print("classes per count: ", count_per_class)
+
+	#skip for class = 0 , just append 5 copys of control_str to training data to account for it
+	for class_value in range(1, control_str_length):
+		# create n random training examples for specified class
+		#was going to attempt to use random choice with shape =2d instead of 1d to avoid 3 loops - wont work 4 w/o repl.
+		# pos_to_flip = np.random.choice((control_str_length - 1), (count_per_class, class_value),
+	    #                           replace=False)
+		for i in range(0, count_per_class):
+			pos_to_flip = np.random.choice((control_str_length - 1), class_value, replace=False)
+			print(pos_to_flip)
+			#TODO: pick up from here -- need to flip bit for every index
+
+	# for i in range(0, count_per_class):
+
+
+	# randomly choose a data class for the rest of training examples needed to meet datasize requirements
+	num_of_random_class_ex = desired_dataset_size - len(control_str) * count_per_class
+	print("# of training examples with random classes needed to meet desreid dataset size: ", num_of_random_class_ex)
+
+	##TODO: do stuff
+
+	return training_data;
 
 # other half of the data is randomly created strings
 def create_random_binary(control_str_length, desired_training_size):
