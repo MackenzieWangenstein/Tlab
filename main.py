@@ -14,7 +14,7 @@ def main():
 
 	#TODO: add sys arg
 	# train data model.
-	hdg.create_data(10, 107, "hammingdistanceclassifier/hammingdata.csv")
+	hdg.create_data(10, 108, "hammingdistanceclassifier/hammingdata.csv")
 
 
 
