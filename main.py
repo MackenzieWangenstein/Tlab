@@ -1,6 +1,7 @@
 import random
 import binarycreator
 import hammingdistanceclassifier.hammingdatagenerator as hdg
+import hammingdistanceclassifier.hdcrunner as hdcrunner
 import sys
 
 
@@ -14,7 +15,10 @@ def main():
 
 	#TODO: add sys arg
 	# train data model.
-	hdg.create_data(10, 108, "hammingdistanceclassifier/hammingdata.csv")
+	# if sys.argv.__contains__("-hdg"):
+	hdg.create_data(10, 1000, "hammingdistanceclassifier/hammingdata.csv")
+
+	hdcrunner.run()
 
 
 

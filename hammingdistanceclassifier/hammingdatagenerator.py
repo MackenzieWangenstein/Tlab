@@ -21,15 +21,24 @@ def create_data(string_length, desired_dataset_size, filename):
 
 	# create control string
 	control_str = np.random.randint(2, size=string_length)
-	print("control str ", control_str)
+	control_str = np.reshape(control_str, (1, control_str.shape[0]))
+	print(control_str.shape)
+	np.savetxt("hammingdistanceclassifier/control_str.csv", control_str, fmt='%1d')
+	print("control str ", control_str[0])
+
 	# create_and_classify_binary_with_binary(filename, control_str)
-	create_training_data(filename, control_str, desired_dataset_size)
+	create_training_data(filename, control_str[0], desired_dataset_size)  #TODO: is this why 10's aren't being found
 
 	# ensure that tions exist for each possible hemming distance class from 0 to len(control string)
 	return control_str
 
-
+#TODO: figure out why 10 mutation is not occuring
 def create_training_data(filename, control_str, desired_dataset_size):
+	mutation_data = create_random_mutations_balanced(control_str, desired_dataset_size)
+	np.savetxt("hammingdistanceclassifier/hammingdataall.csv", mutation_data, fmt='%1d', delimiter=',')
+
+
+def create_training_data_mixed(filename, control_str, desired_dataset_size):
 	"""
 	Create training data where half of the data is randomly generated, and half the
 	labels on training data is hamming distance between the controls str and the generated string for the data example
@@ -87,7 +96,7 @@ def create_random_mutations_balanced(control_str, desired_dataset_size):
 	count_per_class = int(desired_dataset_size/len(control_str))
 
 	#skip for class = 0 , just append count_per_class copys of control_str to training data to account for it
-	for class_value in range(1, control_str_length):
+	for class_value in range(1, control_str_length + 1):
 		# create n random training examples for specified class
 		#was going to attempt to use random choice with shape =2d instead of 1d to avoid 3 loops - wont work 4 w/o repl.
 		for i in range(0, count_per_class):
