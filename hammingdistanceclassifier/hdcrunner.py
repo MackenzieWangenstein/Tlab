@@ -1,16 +1,22 @@
 import pandas as pd
 import numpy as np
-
+import math
 
 def run():
 	control_str = np.genfromtxt('hammingdistanceclassifier/control_str.csv')
 	print(control_str)
 	class_count = control_str.shape[0]
 	hamming_dist_dataset = pd.read_csv("hammingdistanceclassifier/hammingdataall.csv").values
+	control_hamming_dist_dataset = np.array(hamming_dist_dataset)
+	print(control_hamming_dist_dataset.shape, " control")
+
 	print(hamming_dist_dataset)
 	#10s class
 	tens = hamming_dist_dataset[hamming_dist_dataset[:, class_count] == 10]
 	print(tens)
+
+	create_data_sets(control_hamming_dist_dataset, class_count)
+
 
 
 	#figure out how to balance train, test and validate clas s-- equal representation for each?
@@ -37,4 +43,33 @@ def run():
 
 
 
+
+def create_data_sets(control_dataset, class_count):
+	"""
+	create training, test, and validation data sets
+	:param control_dataset:
+	:return:
+	"""
+	total_size = control_dataset.shape[0]
+	train_size = math.ceil(total_size /2)   #more training  => better
+	test_size = math.ceil((total_size - train_size)/2)
+	validation_size = total_size - test_size - train_size
+
+	if train_size + test_size + validation_size != total_size:
+		print("partitioned sets don't add up to size of training")
+		print("total size: ", total_size)
+		print("size of all ", train_size + test_size + validation_size)
+		print("train: ", train_size)
+		print("test size: ", test_size)
+		print("validation size: ", validation_size)
+	else:
+		print("partitioned sets do  add up to size of training")
+		print("total size: ", total_size)
+		print("size of all ", train_size + test_size + validation_size)
+		print("train: ", train_size)
+		print("test size: ", test_size)
+		print("validation size: ", validation_size)
+
+
+	# for i in range(class_count)
 
