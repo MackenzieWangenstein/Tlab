@@ -46,30 +46,33 @@ def run():
 
 def create_data_sets(control_dataset, class_count):
 	"""
-	create training, test, and validation data sets
-	:param control_dataset:
-	:return:
+		create training, test, and validation data sets
 	"""
-	total_size = control_dataset.shape[0]
-	train_size = math.ceil(total_size /2)   #more training  => better
-	test_size = math.ceil((total_size - train_size)/2)
-	validation_size = total_size - test_size - train_size
+	label_pos = control_dataset.shape[1] - 1
+	training_data = np.empty((0, control_dataset.shape[1]))
+	test_data = np.empty((0, control_dataset.shape[1]))
+	validation_data = np.empty((0, control_dataset.shape[1]))
+	#for each class - split the data into training, test, and validation sets.
+	for i in range(class_count+1):
+		class_data = control_dataset[control_dataset[:, label_pos] == i, :]
 
-	if train_size + test_size + validation_size != total_size:
-		print("partitioned sets don't add up to size of training")
-		print("total size: ", total_size)
-		print("size of all ", train_size + test_size + validation_size)
-		print("train: ", train_size)
-		print("test size: ", test_size)
-		print("validation size: ", validation_size)
-	else:
-		print("partitioned sets do  add up to size of training")
-		print("total size: ", total_size)
-		print("size of all ", train_size + test_size + validation_size)
-		print("train: ", train_size)
-		print("test size: ", test_size)
-		print("validation size: ", validation_size)
+		total_size = class_data.shape[0]
+		train_size = math.ceil(total_size / 2)  # half the data goes to training because more training  => better
+		test_size = math.ceil((total_size - train_size) / 2)  # split other half between val & test - test sz > vali. sz
+		validation_size_ind = total_size - (total_size - test_size - train_size)
 
+		class_train_data = class_data[:train_size, :]
+		class_test_data = class_data[train_size:validation_size_ind, :]
+		class_val_data = class_data[validation_size_ind:, :]
 
-	# for i in range(class_count)
+		training_data = np.append(training_data, class_train_data, axis=0)
+		test_data = np.append(test_data, class_test_data, axis=0)
+		validation_data = np.append(validation_data, class_val_data, axis=0)
+
+		print("\n")
+
+	print("training data shape after: ", training_data.shape)
+	print("test data shape after: ", test_data.shape)
+	print("val data shape after: ", validation_data.shape)
+
 

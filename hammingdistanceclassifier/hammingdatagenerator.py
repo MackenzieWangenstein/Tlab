@@ -85,11 +85,17 @@ def create_mutated_string(mutated_str, num_of_pos_to_flip):
 	mutated_str = np.append(mutated_str, num_of_pos_to_flip)
 	return mutated_str
 
-
 #class = hamming distance  o(n^3) :(
 def create_random_mutations_balanced(control_str, desired_dataset_size):
 	control_str_length = len(control_str)
+
+	#TODO: refactor this so that we don't have to create train, set and validation each time -- save comp time.
 	training_data = np.zeros((desired_dataset_size, control_str_length + 1))
+
+
+	#create
+
+
 	data_index = 0
 
 	# Ensurs data classes are balanced in training data example
