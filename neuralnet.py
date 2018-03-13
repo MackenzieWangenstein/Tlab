@@ -9,7 +9,7 @@ class NeuralNet(object):
 	             hidden_node_count,
 	             learning_rate,
 	             momentum,
-	             data_class_count,
+	             output_node_count,
 	             training_data,
 	             training_labels_matrix,
 	             test_data,
@@ -21,7 +21,7 @@ class NeuralNet(object):
 		:param hidden_node_count:
 		:param learning_rate:
 		:param momentum:
-		:param data_class_count:
+		:param output_node_count:
 		:param training_data: the inputs associated with each training example,**training data has bias already appended
 		:param training_count:
 		:param training_labels_matrix: the expected class value in vector form for each training example
@@ -41,7 +41,7 @@ class NeuralNet(object):
 
 		self.input_node_count = training_data.shape[1]  # should be 785
 		self.hidden_node_count = hidden_node_count  # 20
-		self.output_node_count = data_class_count  # 10
+		self.output_node_count = output_node_count  # 10
 
 		self.learning_rate = learning_rate
 		self.momentum = momentum
@@ -51,7 +51,7 @@ class NeuralNet(object):
 		                                                    hidden_node_count))  # input nodes to hidden layer nodes
 		print("shape of hidden layer weights: ", self.hidden_layer_weights.shape)  # shape - 785 x 20
 		self.output_layer_weights = np.random.uniform(low=-0.05, high=0.05,
-		                                              size=(hidden_node_count + 1, data_class_count))  # shape 21 x 10 `
+		                                              size=(hidden_node_count + 1, output_node_count))  # shape 21 x 10 `
 		self.training_data = training_data
 		self.training_data_size = training_data.shape[0]
 		self.training_labels = training_labels_matrix
@@ -99,6 +99,9 @@ class NeuralNet(object):
 			for element_index in range(test_output_activations.shape[0]):
 				_test_actual = np.argmax(test_output_activations[element_index])
 				_test_target = np.where(self.test_labels[element_index] == 0.9)[0][0]
+				print("test label: ", self.test_labels[element_index])
+				print("test predicted: ", _test_target,"\n")
+
 				self.test_confusion_matrix[_test_actual, _test_target] += 1
 
 			_curr_training_accuracy = putil.compute_accuracy(self.training_confusion_matrix)

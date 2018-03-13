@@ -1,49 +1,59 @@
 import pandas as pd
 import numpy as np
 import math
+from neuralnet import NeuralNet
 
 def run():
+	#experiment with
+	momentum_default = 0.9
+	momentum_zero = 0
+	momentum_quartile = 0.25
+	momentum_half = 0.50
+	epochs = 2  # 50  # TODO: 50
+	hidden_nodes_twenty = 20
+	hidden_nodes_fifty = 50
+	hidden_nodes_hundred = 100
+	learning_rate = 0.001
+
 	control_str = np.genfromtxt('hammingdistanceclassifier/control_str.csv')
 	print(control_str)
 	class_count = control_str.shape[0]
 	hamming_dist_dataset = pd.read_csv("hammingdistanceclassifier/hammingdataall.csv").values
 	control_hamming_dist_dataset = np.array(hamming_dist_dataset)
-	print(control_hamming_dist_dataset.shape, " control")
 
-	print(hamming_dist_dataset)
-	#10s class
-	tens = hamming_dist_dataset[hamming_dist_dataset[:, class_count] == 10]
-	print(tens)
+	label_pos = control_hamming_dist_dataset.shape[1] - 1
 
-	create_data_sets(control_hamming_dist_dataset, class_count)
-
-
-
-	#figure out how to balance train, test and validate clas s-- equal representation for each?
-
-	#half of each the data for each class goes to to training -- the other part gets split between test and validation
+	train_data, test_data, validation_data = create_data_sets(control_hamming_dist_dataset, class_count)
+	train_labels = train_data[:, label_pos]
+	#Strip off labels and append bias col(of 1s) to input values for training data
+	train_data = np.append(train_data[:, 0:label_pos], np.ones((train_data.shape[0], 1)), axis=1)
+	training_labels_matrix = np.full((train_data.shape[0], class_count + 1), .1)
 
 
-	# print(hamming_dist_dataset)
-	# np.random.shuffle(hamming_dist_dataset) # TODO: will need to shuffle training dataset between epochs as well when
-	# training
-	#^^ if we do it this way though can we accurately compare models??? run two trials - one where set is the same
-	# between trials - and another where we shuffle so that we do not constantly have the same data items in train set
+	test_labels = test_data[:, label_pos]
+	test_data = np.append(test_data[:, 0:label_pos], np.ones((test_data.shape[0], 1)), axis=1)
 
-	#split data between
+	validation_data = validation_data[:, label_pos]
+	# validation_data = np.append(validation_data[:, 0:label_pos], np.ones((validation_data.shape[0], 1)), axis=1)
+	#TODO: fix ? ^
 
-	# hd_dataset = hamming_dist_dataset[:, 0:class_count]  # strip off labels
-	# print(hd_dataset.shape)
+	training_data_size = train_data.shape[0]
+	test_data_size = test_data.shape[0]
 
-	# hd_dataset_labels = hamming_dist_dataset[:, class_count] # collect labels - strip off labels after splitting
-# into tests
-	# print(hd_dataset_labels.shape)
-	#
+	for i in range(training_data_size):
+		_train_target_output = int(train_labels[i])
+		training_labels_matrix[i][_train_target_output] = 0.9
+
+	test_labels_matrix = np.full((test_data_size, class_count + 1), 0.1)
+	for j in range(test_data_size):
+		_test_target_output = int(test_labels[j])
+		test_labels_matrix[j][_test_target_output] = 0.9
+
+	run_experiment(hidden_nodes_twenty, learning_rate, momentum_default, class_count + 1, train_data,
+	               training_labels_matrix, test_data, test_labels_matrix, epochs, experiment_name="nn1")
 
 
-
-
-
+#TODO: shuffle data
 def create_data_sets(control_dataset, class_count):
 	"""
 		create training, test, and validation data sets
@@ -69,10 +79,31 @@ def create_data_sets(control_dataset, class_count):
 		test_data = np.append(test_data, class_test_data, axis=0)
 		validation_data = np.append(validation_data, class_val_data, axis=0)
 
-		print("\n")
-
 	print("training data shape after: ", training_data.shape)
 	print("test data shape after: ", test_data.shape)
 	print("val data shape after: ", validation_data.shape)
+	return training_data, test_data, validation_data
 
 
+def run_experiment(hidden_nodes,
+				   learning_rate,
+				   momentum,
+				   output_nodes,
+				   training_data,
+				   training_labels_matrix,
+				   test_data,
+				   test_labels_matrix,
+				   epochs,
+				   experiment_name):
+	nn = NeuralNet(hidden_nodes, learning_rate, momentum, output_nodes, training_data, training_labels_matrix,
+				   test_data, test_labels_matrix, epochs)
+
+	# print("training data shape", training_data.shape)  # TODO: remove
+	# print("training labels matrix shape: ", training_labels_matrix.shape)
+	nn_epochs_ran, nn_training_accuracy, nn_test_accuracy = nn.run()  # TODO: remove nn_confu matrix
+	nn.plot_accuracy_history("hammingdistanceclassifier/results/" + experiment_name + ".png")
+	nn.save_final_results("hammingdistanceclassifier/results/" + experiment_name + ".txt")
+	# nn.plot_error_history()
+	print("Perceptron with momentum ", momentum, "and ", hidden_nodes, " hidden nodes had afinal training accuracy of ",
+	      nn_training_accuracy, " and a test accuracy of ", nn_test_accuracy, "after ", nn_epochs_ran, " epochs")
+	nn.display_prediction_history()
