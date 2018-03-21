@@ -20,22 +20,33 @@ def run():
 	class_count = control_str.shape[0]
 	hamming_dist_dataset = pd.read_csv("hammingdistanceclassifier/hammingdataall.csv").values
 	control_hamming_dist_dataset = np.array(hamming_dist_dataset)
-
 	label_pos = control_hamming_dist_dataset.shape[1] - 1
 
+	''' Split dataset amongst train, test, and valdiation set'''
 	train_data, test_data, validation_data = create_data_sets(control_hamming_dist_dataset, class_count)
+
+	''' Process Train set '''
 	train_labels = train_data[:, label_pos]
-	#Strip off labels and append bias col(of 1s) to input values for training data
-	train_data = np.append(train_data[:, 0:label_pos], np.ones((train_data.shape[0], 1)), axis=1)
+	# append source str to each training string to feed source and training strings in parallel
+	source_str_matrix = np.array([control_str, ] * train_data.shape[0])
+	train_data = np.append(train_data[:, 0:label_pos], source_str_matrix, axis=1)
+	# Strip off labels and append bias col(of 1s) to input values for training data
+	train_data = np.append(train_data, np.ones((train_data.shape[0], 1)), axis=1)
+	print("train data shape: ", train_data.shape)
 	training_labels_matrix = np.full((train_data.shape[0], class_count + 1), .1)
 
-
+	'''Create Test Set '''
 	test_labels = test_data[:, label_pos]
-	test_data = np.append(test_data[:, 0:label_pos], np.ones((test_data.shape[0], 1)), axis=1)
+	source_str_matrix = np.array([control_str, ] * test_data.shape[0])
+	test_data = np.append(test_data[:, 0:label_pos], source_str_matrix, axis=1) #remove label + add src str
+	test_data = np.append(test_data, np.ones((test_data.shape[0], 1)), axis=1) #add bias
+
+	# test_data = np.append(test_data[:, 0:label_pos], np.ones((test_data.shape[0], 1)), axis=1)
+
 
 	validation_data = validation_data[:, label_pos]
+	#TODO: come back
 	# validation_data = np.append(validation_data[:, 0:label_pos], np.ones((validation_data.shape[0], 1)), axis=1)
-	#TODO: fix ? ^
 
 	training_data_size = train_data.shape[0]
 	test_data_size = test_data.shape[0]

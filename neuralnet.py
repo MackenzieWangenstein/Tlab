@@ -172,7 +172,7 @@ class NeuralNet(object):
 					_output_layer_activations - _target_activations)
 
 			"""Calculate the error terms for hidden layers  bias" """  # slides Lecture 6 pg 37
-			# shape = [1 x 10] * [10 x 21] = [1 x 21]   but the last value will be zero -- this is for the bias
+			# shape = [1 x n] * [n x m] = [1 x m]   but the last value will be zero -- this is for the bias
 			delta_h_inner = np.dot(delta_o_values, self.output_layer_weights.T)  # needs to come before the weight
 			# updates
 			delta_h_values = _hidden_layer_activations * (1.0 - _hidden_layer_activations) * delta_h_inner
