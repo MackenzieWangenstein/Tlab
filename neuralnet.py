@@ -94,13 +94,19 @@ class NeuralNet(object):
 				_training_target = (np.where(self.training_labels[element_index] == 0.9)[0])[0]  # =[t] without last [0]
 				self.training_confusion_matrix[_training_target, _training_actual] += 1
 				self.training_error_history[i] = putil.sum_squared_error(_training_target, _training_actual)
+				print("train actual output activations ", training_output_activations[element_index], "\n")
+				print("train actual: ", _training_actual, "\n")
+				print("train target: ", _training_target, "\n")
+				print("train label: ", self.training_labels[element_index])
 
 			test_output_activations = self.forward_propogate_all(self.test_data)
 			for element_index in range(test_output_activations.shape[0]):
 				_test_actual = np.argmax(test_output_activations[element_index])
 				_test_target = np.where(self.test_labels[element_index] == 0.9)[0][0]
-				print("test label: ", self.test_labels[element_index])
-				print("test predicted: ", _test_target,"\n")
+				# print("test actual: ", _test_actual, "\n")
+				# print("test target: ", _test_target,"\n")
+				# print("test label: ", self.test_labels[element_index])
+
 
 				self.test_confusion_matrix[_test_actual, _test_target] += 1
 

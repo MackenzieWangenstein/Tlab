@@ -3,17 +3,21 @@ import numpy as np
 import math
 from neuralnet import NeuralNet
 
-def run():
-	#experiment with
-	momentum_default = 0.9
-	momentum_zero = 0
-	momentum_quartile = 0.25
-	momentum_half = 0.50
-	epochs = 2  # 50  # TODO: 50
-	hidden_nodes_twenty = 20
-	hidden_nodes_fifty = 50
-	hidden_nodes_hundred = 100
-	learning_rate = 0.001
+def run(args):
+
+	# leave in for testing ideas -- remove after : TODO:
+	# momentum_zero = 0
+	# momentum_quartile = 0.25
+	# momentum_half = 0.50
+	# hidden_nodes = 20
+	# hidden_nodes_fifty = 50
+	# hidden_nodes_hundred = 100
+	# learning_rate = 0.01
+
+	momentum_default = args['-m']
+	epochs = args['-e']
+	hidden_nodes = args['-hn']
+	learning_rate = args['-lr']
 
 	control_str = np.genfromtxt('hammingdistanceclassifier/control_str.csv')
 	print(control_str)
@@ -60,7 +64,7 @@ def run():
 		_test_target_output = int(test_labels[j])
 		test_labels_matrix[j][_test_target_output] = 0.9
 
-	run_experiment(hidden_nodes_twenty, learning_rate, momentum_default, class_count + 1, train_data,
+	run_experiment(hidden_nodes, learning_rate, momentum_default, class_count + 1, train_data,
 	               training_labels_matrix, test_data, test_labels_matrix, epochs, experiment_name="nn1")
 
 
