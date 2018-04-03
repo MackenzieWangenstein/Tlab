@@ -14,7 +14,8 @@ class NeuralNet(object):
 	             training_labels_matrix,
 	             test_data,
 	             test_labels_matrix,
-	             epochs):
+	             epochs,
+	             print_details):
 
 		"""
 
@@ -67,6 +68,7 @@ class NeuralNet(object):
 		self.training_error_history = np.zeros(epochs)
 		self.test_accuracy_history = np.zeros(epochs)
 		self.test_error_history = np.zeros(epochs)
+		self.print_details = print_details
 
 		if self.hidden_layer_weights.shape[0] != self.training_data.shape[1]:
 			print("weight rows: ", self.hidden_layer_weights.shape[0])
@@ -94,10 +96,11 @@ class NeuralNet(object):
 				_training_target = (np.where(self.training_labels[element_index] == 0.9)[0])[0]  # =[t] without last [0]
 				self.training_confusion_matrix[_training_target, _training_actual] += 1
 				self.training_error_history[i] = putil.sum_squared_error(_training_target, _training_actual)
-				print("train actual output activations ", training_output_activations[element_index], "\n")
-				print("train actual: ", _training_actual, "\n")
-				print("train target: ", _training_target, "\n")
-				print("train label: ", self.training_labels[element_index])
+				if self.print_details:  #TODO: remove eventually
+					print("train actual output activations ", training_output_activations[element_index], "\n")
+					print("train actual: ", _training_actual, "\n")
+					print("train target: ", _training_target, "\n")
+					print("train label: ", self.training_labels[element_index])
 
 			test_output_activations = self.forward_propogate_all(self.test_data)
 			for element_index in range(test_output_activations.shape[0]):
@@ -106,8 +109,6 @@ class NeuralNet(object):
 				# print("test actual: ", _test_actual, "\n")
 				# print("test target: ", _test_target,"\n")
 				# print("test label: ", self.test_labels[element_index])
-
-
 				self.test_confusion_matrix[_test_actual, _test_target] += 1
 
 			_curr_training_accuracy = putil.compute_accuracy(self.training_confusion_matrix)
@@ -115,7 +116,8 @@ class NeuralNet(object):
 
 			self.training_accuracy_history[i] = _curr_training_accuracy
 			self.test_accuracy_history[i] = _test_accuracy
-			print("finished epoch ", i)
+			if i % 50 == 0:
+				print("finished epoch ", i)
 		return self.epochs, _curr_training_accuracy, _test_accuracy
 
 	def display_prediction_history(self):

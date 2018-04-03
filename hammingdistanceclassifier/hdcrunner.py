@@ -14,11 +14,12 @@ def run(args):
 	# hidden_nodes_hundred = 100
 	# learning_rate = 0.01
 
-	momentum_default = args['-m']
-	epochs = args['-e']
-	hidden_nodes = args['-hn']
-	learning_rate = args['-lr']
+	momentum_default = args.momentum
+	epochs = args.epochs
+	hidden_nodes = args.hidden_node_count
+	learning_rate = args.learning_rate
 
+	print(momentum_default, " Momentum")
 	control_str = np.genfromtxt('hammingdistanceclassifier/control_str.csv')
 	print(control_str)
 	class_count = control_str.shape[0]
@@ -65,7 +66,7 @@ def run(args):
 		test_labels_matrix[j][_test_target_output] = 0.9
 
 	run_experiment(hidden_nodes, learning_rate, momentum_default, class_count + 1, train_data,
-	               training_labels_matrix, test_data, test_labels_matrix, epochs, experiment_name="nn1")
+	               training_labels_matrix, test_data, test_labels_matrix, epochs, "nn1", args)
 
 
 #TODO: shuffle data
@@ -109,9 +110,10 @@ def run_experiment(hidden_nodes,
 				   test_data,
 				   test_labels_matrix,
 				   epochs,
-				   experiment_name):
+				   experiment_name,
+                   args):
 	nn = NeuralNet(hidden_nodes, learning_rate, momentum, output_nodes, training_data, training_labels_matrix,
-				   test_data, test_labels_matrix, epochs)
+				   test_data, test_labels_matrix, epochs, args.print_details)
 
 	# print("training data shape", training_data.shape)  # TODO: remove
 	# print("training labels matrix shape: ", training_labels_matrix.shape)
