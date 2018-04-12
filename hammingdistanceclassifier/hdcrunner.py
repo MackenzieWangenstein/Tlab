@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import math
 from neuralnet import NeuralNet
+import pprint
 
 def run(args):
 
@@ -124,3 +125,4 @@ def run_experiment(hidden_nodes,
 	print("Perceptron with momentum ", momentum, "and ", hidden_nodes, " hidden nodes had afinal training accuracy of ",
 	      nn_training_accuracy, " and a test accuracy of ", nn_test_accuracy, "after ", nn_epochs_ran, " epochs")
 	nn.display_prediction_history()
+	pprint.pprint(nn.test_prediction_history)

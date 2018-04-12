@@ -1,7 +1,7 @@
 import numpy as np
 import perceptronutility as putil
 import matplotlib.pyplot as plt
-
+import sys
 
 class NeuralNet(object):
 	# todo: refactor to get rid of param for data_set counts -- just use shape instead
@@ -69,6 +69,7 @@ class NeuralNet(object):
 		self.test_accuracy_history = np.zeros(epochs)
 		self.test_error_history = np.zeros(epochs)
 		self.print_details = print_details
+		self.test_prediction_history = dict()
 
 		if self.hidden_layer_weights.shape[0] != self.training_data.shape[1]:
 			print("weight rows: ", self.hidden_layer_weights.shape[0])
@@ -82,9 +83,12 @@ class NeuralNet(object):
 			raise Exception("The number of columns in the training data matrix does not match the number of columns " +
 			                "in the test data matrix")
 
-	# TODO: accuracy errors observed were due to how the confusion matrix was supplied. The book describes how to
-	# build a confusion matrix backwards- wikipedia has the correct definition.
 	def run(self):
+		"""
+		:return: i - number of epochs actually ran, training accuracy, test accuracy
+		"""
+		_prev_accuracy = -sys.maxsize
+
 		for i in range(self.epochs):
 			self.training_cycle()
 
@@ -106,6 +110,13 @@ class NeuralNet(object):
 			for element_index in range(test_output_activations.shape[0]):
 				_test_actual = np.argmax(test_output_activations[element_index])
 				_test_target = np.where(self.test_labels[element_index] == 0.9)[0][0]
+				self.test_prediction_history[i] = {
+					                             "control": self.test_data[i][10:-1], #split of bias input
+												 "datum": self.test_data[i][0:10],
+					                             "predicted": _test_actual,
+					                             "actual": _test_target
+
+				}
 				# print("test actual: ", _test_actual, "\n")
 				# print("test target: ", _test_target,"\n")
 				# print("test label: ", self.test_labels[element_index])
@@ -116,9 +127,13 @@ class NeuralNet(object):
 
 			self.training_accuracy_history[i] = _curr_training_accuracy
 			self.test_accuracy_history[i] = _test_accuracy
+
 			if i % 50 == 0:
 				print("finished epoch ", i)
-		return self.epochs, _curr_training_accuracy, _test_accuracy
+			if _curr_training_accuracy - _prev_accuracy < 0.00001 and _curr_training_accuracy > 0.8:
+				break
+			_prev_accuracy = _curr_training_accuracy
+		return i, _curr_training_accuracy, _test_accuracy
 
 	def display_prediction_history(self):
 		print("training accuracy history: ", self.training_accuracy_history)

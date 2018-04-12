@@ -2,7 +2,6 @@ import random
 import binarycreator
 import hammingdistanceclassifier.hammingdatagenerator as hdg
 import hammingdistanceclassifier.hdcrunner as hdcrunner
-import sys
 import argparse
 
 def main():
@@ -14,7 +13,7 @@ def main():
 	                                                          'count', action='store_true')
 	parser.add_argument('--momentum', '-m', type=float, default=0.9)
 	parser.add_argument('--learning_rate', '-rl', type=float, default=0.01)
-	parser.add_argument('--hidden_node_count', '-hn', type=int, default=20)
+	parser.add_argument('--hidden_node_count', '-hdn', type=int, default=20)
 	parser.add_argument('--epochs', '-e', type=int, default=50)
 	parser.add_argument('--print_details', '-pd', action='store_true')
 	args = parser.parse_args()
