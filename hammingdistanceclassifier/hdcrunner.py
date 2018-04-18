@@ -116,9 +116,11 @@ def run_experiment(hidden_nodes,
 	nn = NeuralNet(hidden_nodes, learning_rate, momentum, output_nodes, training_data, training_labels_matrix,
 				   test_data, test_labels_matrix, epochs, args.print_details)
 
-	# print("training data shape", training_data.shape)  # TODO: remove
-	# print("training labels matrix shape: ", training_labels_matrix.shape)
-	nn_epochs_ran, nn_training_accuracy, nn_test_accuracy = nn.run()  # TODO: remove nn_confu matrix
+	nn_epochs_ran, nn_training_accuracy, nn_test_accuracy = nn.run()
+	print("test of training accuracy history in runner ");
+	print("test of history list: ")
+	for k in range(len(nn.training_accuracy_history)):
+		print("history[", k, " :", nn.training_accuracy_history[k])
 	nn.plot_accuracy_history("hammingdistanceclassifier/results/" + experiment_name + ".png")
 	nn.save_final_results("hammingdistanceclassifier/results/" + experiment_name + ".txt")
 	# nn.plot_error_history()

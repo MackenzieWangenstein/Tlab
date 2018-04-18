@@ -64,9 +64,12 @@ class NeuralNet(object):
 		self.epochs = epochs
 		self.training_confusion_matrix = np.zeros((self.output_node_count, self.output_node_count))
 		self.test_confusion_matrix = np.zeros((self.output_node_count, self.output_node_count))
-		self.training_accuracy_history = np.zeros(epochs)
-		self.training_error_history = np.zeros(epochs)
-		self.test_accuracy_history = np.zeros(epochs)
+		self.training_error_history = np.zeros(epochs) #TODO:
+		self.training_accuracy_history = []
+		# self.training_accuracy_history = np.zeros(epochs)
+		# self.test_accuracy_history = np.zeros(epochs)
+		self.test_accuracy_history = []
+
 		self.test_error_history = np.zeros(epochs)
 		self.print_details = print_details
 		self.test_prediction_history = dict()
@@ -100,40 +103,41 @@ class NeuralNet(object):
 				_training_target = (np.where(self.training_labels[element_index] == 0.9)[0])[0]  # =[t] without last [0]
 				self.training_confusion_matrix[_training_target, _training_actual] += 1
 				self.training_error_history[i] = putil.sum_squared_error(_training_target, _training_actual)
-				if self.print_details:  #TODO: remove eventually
+				if self.print_details:  #TODO: remove before production
 					print("train actual output activations ", training_output_activations[element_index], "\n")
 					print("train actual: ", _training_actual, "\n")
 					print("train target: ", _training_target, "\n")
 					print("train label: ", self.training_labels[element_index])
 
+
+			#TODO: take in validation set, and stop training when error on validation set is minimal - after that is
+			# done - run test  -- fix plot
+
 			test_output_activations = self.forward_propogate_all(self.test_data)
 			for element_index in range(test_output_activations.shape[0]):
-				_test_actual = np.argmax(test_output_activations[element_index])
+				_test_prediction = np.argmax(test_output_activations[element_index])
 				_test_target = np.where(self.test_labels[element_index] == 0.9)[0][0]
 				self.test_prediction_history[i] = {
-					                             "control": self.test_data[i][10:-1], #split of bias input
-												 "datum": self.test_data[i][0:10],
-					                             "predicted": _test_actual,
-					                             "actual": _test_target
-
+					"control string": self.test_data[element_index][10:-1],  # split of bias input
+					"datum ": self.test_data[element_index][0:10],
+					"predicted": _test_prediction,
+					"actual": _test_target,
+					"test_labels fill": self.test_labels[element_index]
 				}
-				# print("test actual: ", _test_actual, "\n")
-				# print("test target: ", _test_target,"\n")
-				# print("test label: ", self.test_labels[element_index])
-				self.test_confusion_matrix[_test_actual, _test_target] += 1
+				self.test_confusion_matrix[_test_prediction, _test_target] += 1
 
 			_curr_training_accuracy = putil.compute_accuracy(self.training_confusion_matrix)
 			_test_accuracy = putil.compute_accuracy(self.test_confusion_matrix)
-
-			self.training_accuracy_history[i] = _curr_training_accuracy
-			self.test_accuracy_history[i] = _test_accuracy
+			self.training_accuracy_history.append(_curr_training_accuracy)
+			self.test_accuracy_history.append(_test_accuracy)
 
 			if i % 50 == 0:
 				print("finished epoch ", i)
 			if _curr_training_accuracy - _prev_accuracy < 0.00001 and _curr_training_accuracy > 0.8:
-				break
+				break #TODO: stop here
 			_prev_accuracy = _curr_training_accuracy
-		return i, _curr_training_accuracy, _test_accuracy
+			self.epochs = i + 1 # used for graphing purposes - epoch counts start at 0.
+		return self.epochs, _curr_training_accuracy, _test_accuracy
 
 	def display_prediction_history(self):
 		print("training accuracy history: ", self.training_accuracy_history)
@@ -141,6 +145,9 @@ class NeuralNet(object):
 
 	def plot_accuracy_history(self, filename):
 		self.display_prediction_history()
+		print("epoch count - x axis: ", self.epochs)
+		print("history train count - y axis ", len(self.training_accuracy_history))
+		print("history test count - y axis", len(self.test_accuracy_history))
 		print("Accuracy Histories: ")
 		epochs = np.arange(self.epochs)  # turn into an array [1 x epoch_count]
 		plt.plot(epochs, self.training_accuracy_history)
@@ -182,8 +189,8 @@ class NeuralNet(object):
 	def training_cycle(self):
 		output_prev_delta = np.zeros(np.shape(self.output_layer_weights))
 		hidden_prev_delta = np.zeros(np.shape(self.hidden_layer_weights))
-		input_list = np.arange(self.training_data.shape[0])
-		np.random.shuffle(input_list)  # used to randomize training data
+		input_list = np.arange(self.training_data.shape[0])  # fills list with values 0 to n; n is size of train set
+		np.random.shuffle(input_list)  # randomize order - list entries are used to determine next datum for training
 		for i in range(self.training_data.shape[0]):  # tune weights after each training example in training data set
 			data_example_index = input_list[i]
 			_hidden_layer_activations, _output_layer_activations = self.forward_propagate(
@@ -206,11 +213,11 @@ class NeuralNet(object):
 			output_prev_delta = self.learning_rate * np.dot(_hidden_layer_activations.T,
 			                                                delta_o_values) + self.momentum * output_prev_delta
 
-			# shape: [1 x 785]
+			# shape: [1 x input node count]
 			data_example = np.reshape(self.training_data[data_example_index],
 			                          (1, self.training_data[data_example_index].shape[0]))
 
-			# Dwji shape is [785 x 20 ] = [785 x 1] * [1 x 20]]		#stripped off bias delta h
+			# Dwji shape is [input node count x hidden layer count ] = [ipc x 1] * [1 x hlc] - stripped off bias
 			hidden_prev_delta = self.learning_rate * np.dot(data_example.T,
 			                                                delta_h_values[:, :-1]) + self.momentum * hidden_prev_delta
 
@@ -221,8 +228,8 @@ class NeuralNet(object):
 		"""
 
 		:param data_examples_set: data_examples_set should already have a bias node appended to inputs
-		:return: hidden_layer_sigmoids shape: [n x 21]
-				 output_layer_sigmoids shape: [n x 10]
+		:return: hidden_layer_sigmoids shape: [n x hidden node count + 1 bias node]
+				 output_layer_sigmoids shape: [n x output node count]
 				where n is number of training examples in data_set
 		"""
 		hidden_layer_activations = np.dot(data_examples_set, self.hidden_layer_weights)
@@ -237,29 +244,28 @@ class NeuralNet(object):
 
 	def forward_propagate(self, data_example):
 		"""
-
 		:param data_example:
 		:return: hidden layer activations includes all the input values + the bias -- shape: [1x20] where each
 		column represents the sigmoid activation for the kth hidden node
 
 			output layer activation
 		"""
-		# [1 example x 785 input values] * [785input values x 20 hidden nodes]  = [1 x 20activations]
+		# [1 example x input node count] * [input node count x hidden node count]  = [1 x hidden note count activations]
 		# each column represents the activation value for node k
 		data_example = np.reshape(data_example, (1, len(data_example)))
 
-		# shape: [785 x20]
+		# shape: [ipc x hnc]
 		hidden_layer_activations = np.dot(data_example, self.hidden_layer_weights)
 
-		# use sigmoid to squash activation value for each node k for every data example   = [60k x 20]
+		# use sigmoid to squash activation value for each node k for every data example = [dataset size x hnc]
 		hidden_layer_sigmoids = putil.sigmoid_activation(hidden_layer_activations)
 
-		# add bias  so that inputs into output layer is 20 hidden layer activations + (1 bias)
+		# add bias  so that inputs into output layer is hdc hidden layer activations + (1 bias)
 		hidden_layer_sigmoids = np.concatenate((hidden_layer_sigmoids,
 		                                        np.ones((np.shape(hidden_layer_sigmoids)[0], 1))),
 		                                       axis=1)
 
-		# [1 x (20hidden nodes + 1bias)] * [(20 hidden nodes + 1bias) x 10 output nodes] = [1 x 10 ]
+		# [1 x (hidden node count + 1bias)] * [(hidden node count + 1bias) x n output nodes] = [1 x n ]
 		# each col is activation for output node k
 		output_layer_activations = np.dot(hidden_layer_sigmoids, self.output_layer_weights)
 		output_layer_sigmoids = putil.sigmoid_activation(output_layer_activations)
