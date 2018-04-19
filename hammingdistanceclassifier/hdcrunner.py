@@ -90,6 +90,7 @@ def run(args):
 	               training_labels_matrix, test_data, test_labels_matrix, epochs, "nn1", args)
 
 
+
 #TODO: shuffle data
 def create_data_sets(control_dataset, class_count):
 	"""
@@ -148,3 +149,6 @@ def run_experiment(hidden_nodes,
 	      nn_training_accuracy, " and a test accuracy of ", nn_test_accuracy, "after ", nn_epochs_ran, " epochs")
 	nn.display_prediction_history()
 	pprint.pprint(nn.test_prediction_history)
+
+	#TODO: nn.train(train_set, validation_set)
+	#TODO:	   nn.predict(test_set, test_labels)
