@@ -86,14 +86,20 @@ class NeuralNet(object):
 			raise Exception("The number of columns in the training data matrix does not match the number of columns " +
 			                "in the test data matrix")
 
+
+	#Def rename to train
 	def run(self):
 		"""
-		:return: i - number of epochs actually ran, training accuracy, test accuracy
+		:return: i - number of epochs actually ran, training accuracy, validation accuracy
 		"""
 		_prev_accuracy = -sys.maxsize
 
 		for i in range(self.epochs):
 			self.training_cycle()
+
+			#after training  session -forward progate validation st:
+			#calc error on validation outputs  --
+			# comp prev validation eror to current. stop training if error is increasing by more than 0.0001
 
 			# get activations(as sigmoids) for data examples using final weights from previous training cycle
 			training_output_activations = self.forward_propogate_all(self.training_data)
@@ -112,7 +118,7 @@ class NeuralNet(object):
 
 			#TODO: take in validation set, and stop training when error on validation set is minimal - after that is
 			# done - run test  -- fix plot
-
+			#TODO: replace with validation set
 			test_output_activations = self.forward_propogate_all(self.test_data)
 			for element_index in range(test_output_activations.shape[0]):
 				_test_prediction = np.argmax(test_output_activations[element_index])
@@ -138,6 +144,15 @@ class NeuralNet(object):
 			_prev_accuracy = _curr_training_accuracy
 			self.epochs = i + 1 # used for graphing purposes - epoch counts start at 0.
 		return self.epochs, _curr_training_accuracy, _test_accuracy
+
+
+	def predict(self, test_set, test_label):
+		## run predictions on test set  after training -- TODO: modify run to use validation set instead of train set
+		#  to stop
+
+		print("place holder")
+
+
 
 	def display_prediction_history(self):
 		print("training accuracy history: ", self.training_accuracy_history)
@@ -200,6 +215,7 @@ class NeuralNet(object):
 			"""calculate the error term for each output term k.  Shape[ 1 x 10] because we have 10 output nodes"""
 			delta_o_values = _output_layer_activations * (1.0 - _output_layer_activations) * (
 					_output_layer_activations - _target_activations)
+
 
 			"""Calculate the error terms for hidden layers  bias" """  # slides Lecture 6 pg 37
 			# shape = [1 x n] * [n x m] = [1 x m]   but the last value will be zero -- this is for the bias

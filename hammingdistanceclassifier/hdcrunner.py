@@ -31,6 +31,13 @@ def run(args):
 	''' Split dataset amongst train, test, and valdiation set'''
 	train_data, test_data, validation_data = create_data_sets(control_hamming_dist_dataset, class_count)
 
+	print("Shape of train data: ", train_data.shape)
+	print("Shape of test data: ", test_data.shape)
+	print("Shape of validation data: ", validation_data.shape)
+	#TODO: add way to ensure no overlap between train and validation data - test and validation okay - look @ numpy
+
+
+
 	''' Process Train set '''
 	train_labels = train_data[:, label_pos]
 	# append source str to each training string to feed source and training strings in parallel
@@ -46,16 +53,25 @@ def run(args):
 	source_str_matrix = np.array([control_str, ] * test_data.shape[0])
 	test_data = np.append(test_data[:, 0:label_pos], source_str_matrix, axis=1) #remove label + add src str
 	test_data = np.append(test_data, np.ones((test_data.shape[0], 1)), axis=1) #add bias
+	test_labels_matrix = np.full((test_data.shape[0], class_count + 1), .1)
 
-	# test_data = np.append(test_data[:, 0:label_pos], np.ones((test_data.shape[0], 1)), axis=1)
+
+	validation_labels = validation_data[:, label_pos]
+	source_str_matrix = np.array([control_str, ] * validation_data.shape[0])
+	validation_data = np.append(validation_data[:, 0:label_pos], source_str_matrix, axis=1)
+	validation_data = np.append(validation_data, np.ones((validation_data.shape[0], 1)), axis=1)
+	validation_labels_matrix = np.full((validation_data.shape[0], class_count + 1), .1)
+
+	print("test valid data\n", validation_data)
 
 
-	validation_data = validation_data[:, label_pos]
+
 	#TODO: come back
 	# validation_data = np.append(validation_data[:, 0:label_pos], np.ones((validation_data.shape[0], 1)), axis=1)
 
 	training_data_size = train_data.shape[0]
 	test_data_size = test_data.shape[0]
+	validation_data_size = validation_data.shape[0]
 
 	for i in range(training_data_size):
 		_train_target_output = int(train_labels[i])
@@ -65,6 +81,10 @@ def run(args):
 	for j in range(test_data_size):
 		_test_target_output = int(test_labels[j])
 		test_labels_matrix[j][_test_target_output] = 0.9
+
+	for k in range(validation_data_size):
+		_validation_target_output = int(validation_labels[k])
+		validation_labels
 
 	run_experiment(hidden_nodes, learning_rate, momentum_default, class_count + 1, train_data,
 	               training_labels_matrix, test_data, test_labels_matrix, epochs, "nn1", args)
