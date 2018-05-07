@@ -4,8 +4,8 @@ import math
 from neuralnet import NeuralNet
 import pprint
 
-def run(args):
 
+def run(args):
 	# leave in for testing ideas -- remove after : TODO:
 	# momentum_zero = 0
 	# momentum_quartile = 0.25
@@ -34,9 +34,7 @@ def run(args):
 	print("Shape of train data: ", train_data.shape)
 	print("Shape of test data: ", test_data.shape)
 	print("Shape of validation data: ", validation_data.shape)
-	#TODO: add way to ensure no overlap between train and validation data - test and validation okay - look @ numpy
-
-
+	# TODO: add way to ensure no overlap between train and validation data - test and validation okay - look @ numpy
 
 	''' Process Train set '''
 	train_labels = train_data[:, label_pos]
@@ -51,10 +49,9 @@ def run(args):
 	'''Create Test Set '''
 	test_labels = test_data[:, label_pos]
 	source_str_matrix = np.array([control_str, ] * test_data.shape[0])
-	test_data = np.append(test_data[:, 0:label_pos], source_str_matrix, axis=1) #remove label + add src str
-	test_data = np.append(test_data, np.ones((test_data.shape[0], 1)), axis=1) #add bias
+	test_data = np.append(test_data[:, 0:label_pos], source_str_matrix, axis=1)  # remove label + add src str
+	test_data = np.append(test_data, np.ones((test_data.shape[0], 1)), axis=1)  # add bias
 	test_labels_matrix = np.full((test_data.shape[0], class_count + 1), .1)
-
 
 	validation_labels = validation_data[:, label_pos]
 	source_str_matrix = np.array([control_str, ] * validation_data.shape[0])
@@ -64,9 +61,7 @@ def run(args):
 
 	print("test valid data\n", validation_data)
 
-
-
-	#TODO: come back
+	# TODO: come back
 	# validation_data = np.append(validation_data[:, 0:label_pos], np.ones((validation_data.shape[0], 1)), axis=1)
 
 	training_data_size = train_data.shape[0]
@@ -84,14 +79,13 @@ def run(args):
 
 	for k in range(validation_data_size):
 		_validation_target_output = int(validation_labels[k])
-		validation_labels
+		validation_labels_matrix[k][_validation_target_output] = 0.9
 
-	run_experiment(hidden_nodes, learning_rate, momentum_default, class_count + 1, train_data,
-	               training_labels_matrix, test_data, test_labels_matrix, epochs, "nn1", args)
+	run_experiment(hidden_nodes, learning_rate, momentum_default, class_count + 1, train_data, training_labels_matrix,
+	               validation_data, validation_labels_matrix, test_data, test_labels_matrix, epochs, "nn1", args)
 
 
-
-#TODO: shuffle data
+# TODO: shuffle data
 def create_data_sets(control_dataset, class_count):
 	"""
 		create training, test, and validation data sets
@@ -100,8 +94,8 @@ def create_data_sets(control_dataset, class_count):
 	training_data = np.empty((0, control_dataset.shape[1]))
 	test_data = np.empty((0, control_dataset.shape[1]))
 	validation_data = np.empty((0, control_dataset.shape[1]))
-	#for each class - split the data into training, test, and validation sets.
-	for i in range(class_count+1):
+	# for each class - split the data into training, test, and validation sets.
+	for i in range(class_count + 1):
 		class_data = control_dataset[control_dataset[:, label_pos] == i, :]
 
 		total_size = class_data.shape[0]
@@ -124,31 +118,27 @@ def create_data_sets(control_dataset, class_count):
 
 
 def run_experiment(hidden_nodes,
-				   learning_rate,
-				   momentum,
-				   output_nodes,
-				   training_data,
-				   training_labels_matrix,
-				   test_data,
-				   test_labels_matrix,
-				   epochs,
-				   experiment_name,
+                   learning_rate,
+                   momentum,
+                   output_nodes,
+                   training_data,
+                   training_labels_matrix,
+                   validation_data,
+                   validation_labels_matrix,
+                   test_data,
+                   test_labels_matrix,
+                   epochs,
+                   experiment_name,
                    args):
 	nn = NeuralNet(hidden_nodes, learning_rate, momentum, output_nodes, training_data, training_labels_matrix,
-				   test_data, test_labels_matrix, epochs, args.print_details)
+	               validation_data, validation_labels_matrix, epochs, args.print_details)
+	##
 
-	nn_epochs_ran, nn_training_accuracy, nn_test_accuracy = nn.run()
-	print("test of training accuracy history in runner ");
-	print("test of history list: ")
-	for k in range(len(nn.training_accuracy_history)):
-		print("history[", k, " :", nn.training_accuracy_history[k])
+	nn_epochs_ran, nn_training_accuracy, nn_validation_accuracy = nn.train()
 	nn.plot_accuracy_history("hammingdistanceclassifier/results/" + experiment_name + ".png")
 	nn.save_final_results("hammingdistanceclassifier/results/" + experiment_name + ".txt")
 	# nn.plot_error_history()
 	print("Perceptron with momentum ", momentum, "and ", hidden_nodes, " hidden nodes had afinal training accuracy of ",
-	      nn_training_accuracy, " and a test accuracy of ", nn_test_accuracy, "after ", nn_epochs_ran, " epochs")
-	nn.display_prediction_history()
-	pprint.pprint(nn.test_prediction_history)
-
-	#TODO: nn.train(train_set, validation_set)
-	#TODO:	   nn.predict(test_set, test_labels)
+	      nn_training_accuracy, " and a validation accuracy of ", nn_validation_accuracy, "after ", nn_epochs_ran,
+	      " epochs")
+	nn.predict(test_data, test_labels_matrix)

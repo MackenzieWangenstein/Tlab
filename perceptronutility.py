@@ -1,7 +1,7 @@
 import numpy as np
 import math
 
-
+#TODO: add unit tests
 def sigmoid_activation_values_all(layer_activations):
 	"""
 		args:
@@ -22,7 +22,7 @@ def sigmoid_activation_values_all(layer_activations):
 	return sigmoid_activations
 
 
-
+#TODO: add unit tests
 def sum_squared_error(target_vector,  output_vector):
 	"""
 		Designed to calculate the sum_squared_error for a single training example
@@ -33,6 +33,7 @@ def sum_squared_error(target_vector,  output_vector):
 	"""
 	return 0.5*np.sum((output_vector - target_vector) ** 2)
 
+#TODO: add unit tests
 def sigmoid_activation(data_example_activations):
 	"""
 			args:

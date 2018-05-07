@@ -3,8 +3,10 @@ import perceptronutility as putil
 import matplotlib.pyplot as plt
 import sys
 
+
 class NeuralNet(object):
 	# todo: refactor to get rid of param for data_set counts -- just use shape instead
+	#TODO: consider creating config object - use builder pattern to avoid using so many parameters
 	def __init__(self,
 	             hidden_node_count,
 	             learning_rate,
@@ -12,8 +14,8 @@ class NeuralNet(object):
 	             output_node_count,
 	             training_data,
 	             training_labels_matrix,
-	             test_data,
-	             test_labels_matrix,
+	             validation_data,
+	             validation_labels_matrix,
 	             epochs,
 	             print_details):
 
@@ -26,9 +28,8 @@ class NeuralNet(object):
 		:param training_data: the inputs associated with each training example,**training data has bias already appended
 		:param training_count:
 		:param training_labels_matrix: the expected class value in vector form for each training example
-		:param test_data:   the inputs associated with each test example
-		:param test_data_size:
-		:param test_labels_matrix: the expected class value in vector form for each test example
+		:param validation_data:   the inputs associated with each test example
+		:param validation_labels_matrix: the expected class value in vector form for each test example
 		:param epochs:
 
 		Notes:
@@ -39,7 +40,7 @@ class NeuralNet(object):
 
 					accuracy = sum of all correct predictions(confusion_matrix diagonal values) / sum of all predictions
 		"""
-
+		#TODO: update comments
 		self.input_node_count = training_data.shape[1]  # should be 785
 		self.hidden_node_count = hidden_node_count  # 20
 		self.output_node_count = output_node_count  # 10
@@ -48,31 +49,27 @@ class NeuralNet(object):
 		self.momentum = momentum
 
 		self.hidden_layer_weights = np.random.uniform(low=-0.05, high=0.05,
-		                                              size=(training_data.shape[1],
-		                                                    hidden_node_count))  # input nodes to hidden layer nodes
-		print("shape of hidden layer weights: ", self.hidden_layer_weights.shape)  # shape - 785 x 20
+		                                              size=(training_data.shape[1],  hidden_node_count))  # input nodes to hidden layer nodes
+		print("shape of hidden layer weights: ", self.hidden_layer_weights.shape)
 		self.output_layer_weights = np.random.uniform(low=-0.05, high=0.05,
-		                                              size=(hidden_node_count + 1, output_node_count))  # shape 21 x 10 `
+		                                              size=(hidden_node_count + 1, output_node_count))#shape HNC+1xONC
 		self.training_data = training_data
 		self.training_data_size = training_data.shape[0]
 		self.training_labels = training_labels_matrix
-		self.test_data = test_data
-		self.test_data_size = test_data.shape[0]
-		self.test_labels = test_labels_matrix
+		self.validation_data = validation_data
+		self.validation_data_size = validation_data.shape[0]
+		self.validation_labels = validation_labels_matrix
 
 		self.bias = 1
 		self.epochs = epochs
 		self.training_confusion_matrix = np.zeros((self.output_node_count, self.output_node_count))
-		self.test_confusion_matrix = np.zeros((self.output_node_count, self.output_node_count))
-		self.training_error_history = np.zeros(epochs) #TODO:
+		self.validation_confusion_matrix = np.zeros((self.output_node_count, self.output_node_count))
+		self.training_error_history = np.zeros(epochs)
 		self.training_accuracy_history = []
-		# self.training_accuracy_history = np.zeros(epochs)
-		# self.test_accuracy_history = np.zeros(epochs)
-		self.test_accuracy_history = []
+		self.validation_accuracy_history = []
 
-		self.test_error_history = np.zeros(epochs)
-		self.print_details = print_details
-		self.test_prediction_history = dict()
+		self.validation_error_history = np.zeros(epochs)
+		self.validation_prediction_history = dict()
 
 		if self.hidden_layer_weights.shape[0] != self.training_data.shape[1]:
 			print("weight rows: ", self.hidden_layer_weights.shape[0])
@@ -80,107 +77,88 @@ class NeuralNet(object):
 			raise Exception("The numbers of rows in the weights matrix does not match the number of columns " +
 			                "in the training data matrix. Ensure that weights matrix contains a weight value for bias")
 
-		if self.training_data.shape[1] != self.test_data.shape[1]:
-			print("training cols: ", self.training_data.shape[1])
-			print("test col cols: ", self.test_data.shape[1])
-			raise Exception("The number of columns in the training data matrix does not match the number of columns " +
-			                "in the test data matrix")
+		if self.training_data.shape[1] != self.validation_data.shape[1]:
+			print("training columns: ", self.training_data.shape[1])
+			print("validation columns: ", self.validation_data.shape[1])
+			raise Exception("The number of columns in the training data matrix does not match the number of columns"
+			                + " in the valdiation data matrix")
 
-
-	#Def rename to train
-	def run(self):
+	# Def rename to train
+	def train(self):
 		"""
 		:return: i - number of epochs actually ran, training accuracy, validation accuracy
 		"""
 		_prev_accuracy = -sys.maxsize
 
-		for i in range(self.epochs):
+		for i in range(0, self.epochs):
 			self.training_cycle()
-
-			#after training  session -forward progate validation st:
-			#calc error on validation outputs  --
-			# comp prev validation eror to current. stop training if error is increasing by more than 0.0001
 
 			# get activations(as sigmoids) for data examples using final weights from previous training cycle
 			training_output_activations = self.forward_propogate_all(self.training_data)
-
 			for element_index in range(training_output_activations.shape[0]):
 				_training_actual = np.argmax(training_output_activations[element_index])
 				_training_target = (np.where(self.training_labels[element_index] == 0.9)[0])[0]  # =[t] without last [0]
 				self.training_confusion_matrix[_training_target, _training_actual] += 1
 				self.training_error_history[i] = putil.sum_squared_error(_training_target, _training_actual)
-				if self.print_details:  #TODO: remove before production
-					print("train actual output activations ", training_output_activations[element_index], "\n")
-					print("train actual: ", _training_actual, "\n")
-					print("train target: ", _training_target, "\n")
-					print("train label: ", self.training_labels[element_index])
 
-
-			#TODO: take in validation set, and stop training when error on validation set is minimal - after that is
-			# done - run test  -- fix plot
-			#TODO: replace with validation set
-			test_output_activations = self.forward_propogate_all(self.test_data)
+			test_output_activations = self.forward_propogate_all(self.validation_data)
 			for element_index in range(test_output_activations.shape[0]):
 				_test_prediction = np.argmax(test_output_activations[element_index])
-				_test_target = np.where(self.test_labels[element_index] == 0.9)[0][0]
-				self.test_prediction_history[i] = {
-					"control string": self.test_data[element_index][10:-1],  # split of bias input
-					"datum ": self.test_data[element_index][0:10],
+				_test_target = np.where(self.validation_labels[element_index] == 0.9)[0][0]
+				self.validation_prediction_history[i] = {
+					"control string": self.validation_data[element_index][10:-1],  # split of bias input
+					"datum ": self.validation_data[element_index][0:10],
 					"predicted": _test_prediction,
 					"actual": _test_target,
-					"test_labels fill": self.test_labels[element_index]
+					"test_labels fill": self.validation_labels[element_index]
 				}
-				self.test_confusion_matrix[_test_prediction, _test_target] += 1
-
+				self.validation_confusion_matrix[_test_prediction, _test_target] += 1
 			_curr_training_accuracy = putil.compute_accuracy(self.training_confusion_matrix)
-			_test_accuracy = putil.compute_accuracy(self.test_confusion_matrix)
+			_test_accuracy = putil.compute_accuracy(self.validation_confusion_matrix)
 			self.training_accuracy_history.append(_curr_training_accuracy)
-			self.test_accuracy_history.append(_test_accuracy)
+			self.validation_accuracy_history.append(_test_accuracy)
 
 			if i % 50 == 0:
 				print("finished epoch ", i)
 			if _curr_training_accuracy - _prev_accuracy < 0.00001 and _curr_training_accuracy > 0.8:
-				break #TODO: stop here
+				self.epochs = i + 1  # update count for number of epochs actually ran - epoch counts start from 0
+				break
 			_prev_accuracy = _curr_training_accuracy
-			self.epochs = i + 1 # used for graphing purposes - epoch counts start at 0.
 		return self.epochs, _curr_training_accuracy, _test_accuracy
 
-
-	def predict(self, test_set, test_label):
-		## run predictions on test set  after training -- TODO: modify run to use validation set instead of train set
-		#  to stop
-
-		print("place holder")
-
+	def predict(self, data, data_labels):
+		output_activations = self.forward_propogate_all(self.training_data)
+		predictions = np.argmax(output_activations, axis=0) # max columns
+		print("test predictions")      #TODO: test
+		print(predictions)
 
 
-	def display_prediction_history(self):
+	def display_training_prediction_history(self):
 		print("training accuracy history: ", self.training_accuracy_history)
-		print("test accuracy history: ", self.test_accuracy_history)
+		print("validation accuracy history: ", self.validation_accuracy_history)
 
 	def plot_accuracy_history(self, filename):
-		self.display_prediction_history()
-		print("epoch count - x axis: ", self.epochs)
+		self.display_training_prediction_history()
 		print("history train count - y axis ", len(self.training_accuracy_history))
-		print("history test count - y axis", len(self.test_accuracy_history))
+		print("history test count - y axis", len(self.validation_accuracy_history))
 		print("Accuracy Histories: ")
 		epochs = np.arange(self.epochs)  # turn into an array [1 x epoch_count]
 		plt.plot(epochs, self.training_accuracy_history)
-		plt.plot(epochs, self.test_accuracy_history)
+		plt.plot(epochs, self.validation_accuracy_history)
 		plt.xlabel('epoch')
 		plt.ylabel('accuracy')
-		plt.legend(['training data', 'test data'], loc='upper left')
+		plt.legend(['training data', 'validation data'], loc='upper left')
 		plt.savefig(filename)
 		plt.clf()
 
 	def plot_error_history(self):
 		print("Error Histories: ")
-		epochs = np.arange(self.epochs)  # turn into an array [1 x epoch_count]
+		epochs = np.arange(self.epochs)  # turn into an array [1 x epoch_count] #histories start counting from 0
 		plt.plot(epochs, self.training_error_history)
-		plt.plot(epochs, self.test_error_history)
+		plt.plot(epochs, self.validation_error_history)
 		plt.xlabel('epoch')
 		plt.ylabel('error')
-		plt.legend(['training data', 'test data'], loc='upper left')
+		plt.legend(['training data', 'validation data'], loc='upper left')
 		plt.show()
 		plt.savefig
 		plt.clf()
@@ -192,13 +170,13 @@ class NeuralNet(object):
 		file = open(filename, "w")
 
 		file.write("Neural Network with " + str(self.hidden_node_count) + " hidden nodes and momentum " +
-				str(self.momentum) + " had a final training accuracy of " +
-				str(self.training_accuracy_history[self.epochs - 1]) + "\n and a test accuracy of " +
-				str(self.test_accuracy_history[self.epochs - 1]) + " after " + str(self.epochs) + " epochs")
+		           str(self.momentum) + " had a final training accuracy of " +
+		           str(self.training_accuracy_history[self.epochs - 1]) + "\n and a test accuracy of " +
+		           str(self.validation_accuracy_history[self.epochs - 1]) + " after " + str(self.epochs) + " epochs")
 		file.write("\nTest Confusion Matrix: \n")
-		file.write(str(self.test_confusion_matrix))
+		file.write(str(self.validation_confusion_matrix))
 		file.write("\ntraining accuracy history: \n" + str(self.training_accuracy_history))
-		file.write("\ntest accuracy history: \n" + str(self.test_accuracy_history))
+		file.write("\nvalidation accuracy history: \n" + str(self.validation_accuracy_history))
 		file.close()
 
 	def training_cycle(self):
@@ -215,7 +193,6 @@ class NeuralNet(object):
 			"""calculate the error term for each output term k.  Shape[ 1 x 10] because we have 10 output nodes"""
 			delta_o_values = _output_layer_activations * (1.0 - _output_layer_activations) * (
 					_output_layer_activations - _target_activations)
-
 
 			"""Calculate the error terms for hidden layers  bias" """  # slides Lecture 6 pg 37
 			# shape = [1 x n] * [n x m] = [1 x m]   but the last value will be zero -- this is for the bias
@@ -242,7 +219,6 @@ class NeuralNet(object):
 
 	def forward_propogate_all(self, data_examples_set):
 		"""
-
 		:param data_examples_set: data_examples_set should already have a bias node appended to inputs
 		:return: hidden_layer_sigmoids shape: [n x hidden node count + 1 bias node]
 				 output_layer_sigmoids shape: [n x output node count]
