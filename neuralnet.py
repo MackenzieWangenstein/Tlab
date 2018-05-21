@@ -64,6 +64,7 @@ class NeuralNet(object):
 		self.epochs = epochs
 		self.training_confusion_matrix = np.zeros((self.output_node_count, self.output_node_count))
 		self.validation_confusion_matrix = np.zeros((self.output_node_count, self.output_node_count))
+
 		self.training_error_history = np.zeros(epochs)
 		self.training_accuracy_history = []
 		self.validation_accuracy_history = []
@@ -90,7 +91,10 @@ class NeuralNet(object):
 		"""
 		_prev_accuracy = -sys.maxsize
 
+
 		for i in range(0, self.epochs):
+			self.training_confusion_matrix = np.zeros((self.output_node_count, self.output_node_count))
+			self.validation_confusion_matrix = np.zeros((self.output_node_count, self.output_node_count))
 			self.training_cycle()
 
 			# get activations(as sigmoids) for data examples using final weights from previous training cycle
@@ -114,24 +118,46 @@ class NeuralNet(object):
 				}
 				self.validation_confusion_matrix[_test_prediction, _test_target] += 1
 			_curr_training_accuracy = putil.compute_accuracy(self.training_confusion_matrix)
-			_test_accuracy = putil.compute_accuracy(self.validation_confusion_matrix)
+			_validation_accuracy = putil.compute_accuracy(self.validation_confusion_matrix)
 			self.training_accuracy_history.append(_curr_training_accuracy)
-			self.validation_accuracy_history.append(_test_accuracy)
+			self.validation_accuracy_history.append(_validation_accuracy)
 
 			if i % 50 == 0:
 				print("finished epoch ", i)
-			if _curr_training_accuracy - _prev_accuracy < 0.00001 and _curr_training_accuracy > 0.8:
+			if _validation_accuracy - _prev_accuracy < .000001 and _validation_accuracy > 0.95:
 				self.epochs = i + 1  # update count for number of epochs actually ran - epoch counts start from 0
 				break
-			_prev_accuracy = _curr_training_accuracy
-		return self.epochs, _curr_training_accuracy, _test_accuracy
+			_prev_accuracy = _validation_accuracy
+		return self.epochs, _curr_training_accuracy, _validation_accuracy
 
 	def predict(self, data, data_labels):
-		output_activations = self.forward_propogate_all(self.training_data)
-		predictions = np.argmax(output_activations, axis=0) # max columns
+		#TODO: return prediction dict, and confusion matrix
+
+		output_activations = self.forward_propogate_all(data)
+		print("output activations")
+		print(output_activations.shape)
+		predictions = np.argmax(output_activations, axis=1) # max columns
+		confusion_matrix = np.zeros((self.output_node_count, self.output_node_count))
+		#TODO: reshape from [1 x n] to [
 		print("test predictions")      #TODO: test
 		print(predictions)
+		print(predictions.shape)
+		print("labels shape")
+		print(data_labels.shape)
+		print(data_labels)
+		history = dict()
+		for element_index in range(output_activations.shape[0]):
+			predicted = np.argmax(output_activations[element_index])
+			target = (np.where(data_labels[element_index] == 0.9)[0])[0]  # =[t] without last [0]
+			history[element_index] = {
+				"predicted": predicted,
+				"target": target
+			}
+			confusion_matrix[target, predicted] += 1
+		return history, confusion_matrix
 
+	def compute_accuracy(self, confusion_matrix):
+		return putil.compute_accuracy(confusion_matrix)
 
 	def display_training_prediction_history(self):
 		print("training accuracy history: ", self.training_accuracy_history)

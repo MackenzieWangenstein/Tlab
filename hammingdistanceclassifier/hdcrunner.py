@@ -6,15 +6,6 @@ import pprint
 
 
 def run(args):
-	# leave in for testing ideas -- remove after : TODO:
-	# momentum_zero = 0
-	# momentum_quartile = 0.25
-	# momentum_half = 0.50
-	# hidden_nodes = 20
-	# hidden_nodes_fifty = 50
-	# hidden_nodes_hundred = 100
-	# learning_rate = 0.01
-
 	momentum_default = args.momentum
 	epochs = args.epochs
 	hidden_nodes = args.hidden_node_count
@@ -141,4 +132,10 @@ def run_experiment(hidden_nodes,
 	print("Perceptron with momentum ", momentum, "and ", hidden_nodes, " hidden nodes had afinal training accuracy of ",
 	      nn_training_accuracy, " and a validation accuracy of ", nn_validation_accuracy, "after ", nn_epochs_ran,
 	      " epochs")
-	nn.predict(test_data, test_labels_matrix)
+	test_history, test_confusion_matrix = nn.predict(test_data, test_labels_matrix)
+
+	print("test confusion matrix\n", test_confusion_matrix)
+	print("test history")
+	pprint.pprint(test_history)
+	print("test accuracy: ", nn.compute_accuracy(test_confusion_matrix))
+
