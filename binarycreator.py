@@ -1,25 +1,71 @@
 import copy
-# todo: convert number to convert to binary as trainingBin to be a parameter instead of being hardcoded
-def createAndClassify():
-    file = open("generatedBinary.txt", "w")
-    trainingBin = '{0:b}'.format(256)
-    trainingBinLength = len(trainingBin)
 
-    #add first mutation
-    firstMutation = copy.copy(trainingBin)
-    if firstMutation[0] == '0':
-        firstMutation = '1' + firstMutation[1:]
+
+def create_and_classify_binary_set(filename, decimal_num):
+    file = open(filename, "w")
+    mutated_set = []
+    non_mutated_set = []
+
+
+    training_binary = '{0:b}'.format(decimal_num)
+    #training_binary = format(decimal_num, 'b')
+
+    training_binary_len = len(training_binary)
+    print("Training String: " + training_binary)
+
+
+    # create binary representations of all the decimals numbers whose binary values have the same length as the training
+    # string -- except for training string
+    last_dec_in_range = pow(2, training_binary_len)
+    for i in range(pow(2, training_binary_len - 1) + 1, last_dec_in_range):
+        binary_string = convert_to_data_format(training_binary, training_binary_len, '{0:b}'.format(i))
+        if i != last_dec_in_range:
+            binary_string = binary_string + "\n"
+        file.write(binary_string)
+    file.close()
+
+
+def create_and_classify_binary_with_binary(filename, training_binary):
+    file = open(filename, "w")
+
+    training_binary_len = len(training_binary)
+
+    # create binary representations of all the decimals numbers whose binary values have the same length as the training
+    # string -- except for training string
+    last_dec_in_range = pow(2, training_binary_len)
+    for i in range(pow(2, training_binary_len - 1) + 1, last_dec_in_range):
+        binary_string = convert_to_data_format(training_binary, training_binary_len, '{0:b}'.format(i))
+        if i != last_dec_in_range:
+            binary_string = binary_string + "\n"
+        file.write(binary_string)
+    file.close()
+
+def pad_string(training_binary_len, src_binary):
+    padded_string = src_binary.rjust(training_binary_len, '0')
+    print("padding string ", padded_string)
+    return padded_string
+
+
+def convert_to_data_format(training_binary, training_bin_len, src_binary):
+    """ Appends commas between characters and appends a 1 or 0 to the end of the string.
+     1 indicates that the src binary is a mutated version of the training binary.
+     example: 100000000 -> 1,0,0,0,0,0,0,0,0,1 where training bin = 000000000"""
+    if training_bin_len != len(src_binary):
+        return Exception("Source string and training string must be the same length!")
+    formatted_string = ""
+    mutated_pos_count = 0;
+    for i in range(0, training_bin_len):
+        formatted_string = formatted_string + src_binary[i] + ','
+        if training_binary[i] != src_binary[i]:
+            mutated_pos_count = mutated_pos_count + 1
+    if mutated_pos_count == 1:
+        formatted_string = formatted_string + '1'
     else:
-        firstMutation = '0' + firstMutation[1:]
-    firstMutation = convertToDataFormat(trainingBin, trainingBinLength, firstMutation)
-    file.write(firstMutation)
+        formatted_string = formatted_string + '0'
+    print(formatted_string)
+    return formatted_string
 
-    #TODO: change logic when replacing hard en
-    #256   = 2^8.     generater numbers from 257  to  512(2^9)-1) and convert to binary
-    for i in range(257, 512):
-        binarySring = '{0:b}'.format(i)
-        file.write(convertToDataFormat(trainingBin, trainingBinLength, binarySring)+'\n')
-
+# def test(){
     #
     # #.replace()a
     # #    print(format(trainingBin, ',str'))
@@ -43,34 +89,4 @@ def createAndClassify():
     # print("testing conversion of non-mutated string ,", nonMutatedString, " match not expected!")
     # convertToDataFormat(trainingBin, trainingBinLength, nonMutatedString)
 
-    file.close()
-
-    # file.write(trainingBin)
-    # file.close()
-    # for i in range(0, 255):
-    #     file.write(i.)
-
-
-def padString(trainingBinLen, srcBin):
-    paddedString = srcBin.rjust(trainingBinLen, '0')
-    print("padding string ", paddedString)
-    return paddedString;
-
-
-# example: 100000000 -> 1,0,0,0,0,0,0,0,0
-def convertToDataFormat(trainingBin, trainingBenLen, srcBin):
-    if trainingBenLen != len(srcBin):
-        return Exception("Src string and training string must be the same length!")
-    fileString = ""
-    mutatedPosCount = 0;
-    for i in range(0, trainingBenLen):
-        fileString = fileString + srcBin[i]
-        fileString = fileString + ','
-        if trainingBin[i] != srcBin[i]:
-            mutatedPosCount = mutatedPosCount + 1
-    if (mutatedPosCount <= 1):
-        fileString = fileString + '1';  # might need to convert to string
-    else:
-        fileString = fileString + '0'
-    print("converted string: ", fileString)
-    return fileString
+# }
